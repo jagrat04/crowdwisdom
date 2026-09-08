@@ -88,7 +88,7 @@ Everything has a free tier. Nothing is mandatory.
 | `APIFY_TOKEN` | Meta Ad Library mining | <https://console.apify.com/settings/integrations> |
 | `TAVILY_API_KEY` | last-month research | <https://app.tavily.com> |
 | `EXA_API_KEY` | last-month research | <https://dashboard.exa.ai> |
-| `HERMES_HOME` | in-process Hermes runtime | clone [hermes-agent](https://github.com/NousResearch/hermes-agent) |
+| `CWT_HERMES_CHECKOUT` | in-process Hermes runtime | clone [hermes-agent](https://github.com/NousResearch/hermes-agent) |
 | `OPENMONTAGE_HOME` | the MP4 render | clone [OpenMontage](https://github.com/calesthio/OpenMontage), `make setup` |
 
 Missing a key never crashes a run. The Ads Manager falls back to a bundled fixture, the Researcher reports that it ran unsourced, the Creative Director falls back to the reference films, and the Video Director says plainly that no MP4 was produced and why. Every artifact records which transport actually ran in its `_meta` block.
@@ -140,7 +140,7 @@ through a redactor first.
 
 ### In-process — `cwt_ads.cli run`
 
-Hermes' `AIAgent` is imported from a local checkout and each agent gets its own system prompt, model and toolset allow-list. Set `HERMES_HOME`, or:
+Hermes' `AIAgent` is imported from a local checkout and each agent gets its own system prompt, model and toolset allow-list. Set `CWT_HERMES_CHECKOUT` (not `HERMES_HOME` — see the warning below), or:
 
 ```bash
 python -m cwt_ads.cli setup-hermes        # clones hermes-agent into vendor/

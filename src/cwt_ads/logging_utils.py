@@ -68,6 +68,7 @@ def ascii_safe(text: str) -> str:
 
 try:
     from rich.console import Console
+    from rich.markup import escape as _rich_escape
     from rich.panel import Panel
     from rich.table import Table
 
@@ -75,6 +76,20 @@ try:
 except ImportError:  # pragma: no cover - cosmetic fallback
     _console = None
     Console = Panel = Table = None  # type: ignore[assignment]
+
+    def _rich_escape(text: str) -> str:  # type: ignore[misc]
+        return text
+
+
+def esc(text: str) -> str:
+    """Neutralise Rich markup in text we did not author.
+
+    Rich reads square brackets as style tags, so a Kanban task titled
+    `[run_20260908_151614] Ads Manager` printed as ` Ads Manager` - the run id
+    silently vanished from every log line that quoted it. Any interpolated
+    value gets escaped; the style tags this module adds itself do not.
+    """
+    return _rich_escape(str(text))
 
 
 _AGENT_STYLE = {
@@ -115,25 +130,25 @@ def banner(title: str, subtitle: str = "") -> None:
 def step(agent: str, message: str) -> None:
     style = _AGENT_STYLE.get(agent, "white")
     _emit(
-        "[" + style + "]" + G["bar"] + agent.ljust(15) + "[/" + style + "] " + message,
+        "[" + style + "]" + G["bar"] + agent.ljust(15) + "[/" + style + "] " + esc(message),
         G["bar"] + " " + agent.ljust(15) + " " + message,
     )
 
 
 def warn(message: str) -> None:
-    _emit("[yellow]  ! " + message + "[/yellow]", "  ! " + message)
+    _emit("[yellow]  ! " + esc(message) + "[/yellow]", "  ! " + message)
 
 
 def ok(message: str) -> None:
     _emit(
-        "[green]  " + G["ok"] + " " + message + "[/green]",
+        "[green]  " + G["ok"] + " " + esc(message) + "[/green]",
         "  " + G["ok"] + " " + message,
     )
 
 
 def fail(message: str) -> None:
     _emit(
-        "[red]  " + G["fail"] + " " + message + "[/red]",
+        "[red]  " + G["fail"] + " " + esc(message) + "[/red]",
         "  " + G["fail"] + " " + message,
     )
 

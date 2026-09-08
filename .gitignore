@@ -14,3 +14,6 @@ vendor/
 *.wav
 *.mp3
 .DS_Store
+
+# Personal submission draft - holds pasted API tokens, never commit it
+docs/SUBMISSION_EMAIL.md

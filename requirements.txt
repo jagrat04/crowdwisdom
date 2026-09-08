@@ -6,6 +6,11 @@ PyYAML>=6.0.1
 rich>=13.7.0
 Jinja2>=3.1.4
 
+# Needed by the Hermes AIAgent runtime when it is imported in-process.
+# Hermes installs it inside its own venv; importing Hermes from a
+# different interpreter needs it here too.
+concurrent-log-handler>=0.9.25
+
 # Optional but recommended (the code falls back to plain REST if absent)
 apify-client>=1.7.1
 tavily-python>=0.5.0

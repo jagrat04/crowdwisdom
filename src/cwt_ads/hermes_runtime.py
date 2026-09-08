@@ -30,15 +30,27 @@ from . import llm
 from .config import ROOT, env, env_flag
 from .logging_utils import step, warn
 
-_CANDIDATE_HOMES = (
-    "HERMES_HOME",
-)
-
 
 @lru_cache(maxsize=1)
 def hermes_home() -> Path | None:
-    """Locate a hermes-agent checkout, if there is one."""
-    explicit = env("HERMES_HOME")
+    """Locate a hermes-agent checkout, if there is one.
+
+    Configured with `CWT_HERMES_CHECKOUT`, deliberately *not* `HERMES_HOME`.
+    `HERMES_HOME` is the Hermes CLI's own state directory: set it and every
+    `hermes` subprocess relocates its config and, crucially, its
+    `kanban.db` into that folder. Pointing it at a source checkout silently
+    moved the whole Kanban board - tasks were created successfully, returned
+    real ids, and then could not be found by `hermes kanban list`, because the
+    CLI and the reader were looking at two different databases.
+    """
+    explicit = env("CWT_HERMES_CHECKOUT")
+    if not explicit and env("HERMES_HOME"):
+        explicit = env("HERMES_HOME")
+        warn(
+            "HERMES_HOME is set. That variable belongs to the Hermes CLI (it "
+            "relocates ~/.hermes, including kanban.db). Use CWT_HERMES_CHECKOUT "
+            "to point at the source checkout instead."
+        )
     candidates = [Path(explicit)] if explicit else []
     candidates += [
         ROOT / "vendor" / "hermes-agent",
@@ -69,6 +81,22 @@ def _import_aiagent():
         from run_agent import AIAgent  # type: ignore[import-not-found]
     except Exception as exc:  # noqa: BLE001 - a broken checkout must not kill the run
         warn(f"Hermes checkout at {home} could not be imported ({exc}); using direct LLM transport")
+        return None
+
+    # Importing `run_agent` is not proof that Hermes works. Its dependencies are
+    # installed in the checkout's own venv, and this interpreter is a different
+    # one - so the module imports cleanly and then `AIAgent(...)` dies on a
+    # missing transitive dependency, several stages into a run. Construct one
+    # throwaway agent now so `transport()` reports what is actually true.
+    try:
+        AIAgent(model="__probe__", quiet_mode=True, skip_memory=True, skip_context_files=True)
+    except Exception as exc:  # noqa: BLE001
+        warn(
+            "Hermes imported but is not usable in this interpreter ("
+            + str(exc)[:140]
+            + "). Install its dependencies into this environment, e.g. "
+            "`pip install -e " + str(home) + "`. Falling back to the direct transport."
+        )
         return None
     return AIAgent
 
@@ -189,16 +217,27 @@ class HermesAgent:
 
 
 def describe_runtime() -> str:
+    """Describe the transport that will actually be used, not the one on disk."""
     home = hermes_home()
+    if _import_aiagent() is not None:
+        return "Hermes AIAgent (checkout: " + str(home) + ")"
     if home:
-        return f"Hermes AIAgent (checkout: {home})"
-    return "direct OpenRouter transport (no hermes-agent checkout found — set HERMES_HOME)"
+        return (
+            "direct OpenRouter transport (checkout at "
+            + str(home)
+            + " is present but not importable here)"
+        )
+    return (
+        "direct OpenRouter transport (no hermes-agent checkout found - set "
+        "CWT_HERMES_CHECKOUT)"
+    )
 
 
 def log_runtime() -> None:
     step("pipeline", "LLM runtime: " + describe_runtime())
-    if hermes_home() is None:
+    if _import_aiagent() is None:
         warn(
             "For the full Hermes experience run `python -m cwt_ads.cli setup-hermes`, "
-            "or clone https://github.com/NousResearch/hermes-agent and set HERMES_HOME."
+            "then `pip install -e vendor/hermes-agent` so its dependencies are "
+            "importable, and set CWT_HERMES_CHECKOUT."
         )

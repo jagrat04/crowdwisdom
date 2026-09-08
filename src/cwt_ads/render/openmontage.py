@@ -22,6 +22,8 @@ falls back to the animatic in `previz.py`.
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import re
 import subprocess
 from pathlib import Path
@@ -238,11 +240,43 @@ def _find_output(reply: str) -> Path | None:
     return None
 
 
+def ffmpeg_path() -> str | None:
+    """Locate ffmpeg, tolerating a PATH that has not been refreshed yet.
+
+    A Windows installer updates the user PATH, but every shell already running
+    keeps the old copy - so a freshly installed ffmpeg looks missing until the
+    terminal is restarted. Fall back to the standard install locations rather
+    than reporting a component as absent when it is sitting right there.
+    """
+    found = shutil.which("ffmpeg")
+    if found:
+        return found
+
+    candidates: list[Path] = []
+    local = os.environ.get("LOCALAPPDATA")
+    if local:
+        winget = Path(local) / "Microsoft" / "WinGet" / "Packages"
+        if winget.is_dir():
+            candidates += list(winget.glob("Gyan.FFmpeg*/**/bin/ffmpeg.exe"))
+        candidates.append(Path(local) / "Microsoft" / "WinGet" / "Links" / "ffmpeg.exe")
+    for extra in ("/usr/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/opt/homebrew/bin/ffmpeg"):
+        candidates.append(Path(extra))
+
+    for candidate in candidates:
+        try:
+            if candidate.is_file():
+                return str(candidate)
+        except OSError:
+            continue
+    return None
+
+
 def ffmpeg_available() -> bool:
+    exe = ffmpeg_path()
+    if not exe:
+        return False
     try:
-        subprocess.run(
-            ["ffmpeg", "-version"], capture_output=True, check=True, timeout=20
-        )
+        subprocess.run([exe, "-version"], capture_output=True, check=True, timeout=20)
         return True
     except (OSError, subprocess.SubprocessError):
         return False

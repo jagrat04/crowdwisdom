@@ -16,6 +16,7 @@ is useful) on a machine without Hermes installed.
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -42,7 +43,31 @@ STAGE_FOR_AGENT = {
 
 
 def hermes_cli() -> str | None:
-    return shutil.which("hermes")
+    """Locate the `hermes` executable.
+
+    Prefer one on PATH, but fall back to the console script inside a local
+    checkout's virtualenv. `uv sync` in a hermes-agent clone already produces a
+    fully working `hermes` binary, so requiring a second, global installation
+    just to reach the Kanban board would be busywork - and on a machine where
+    the network install is rate-limited it is the difference between the board
+    working and not.
+    """
+    found = shutil.which("hermes")
+    if found:
+        return found
+
+    from .hermes_runtime import hermes_home
+
+    home = hermes_home()
+    if home is None:
+        return None
+    for candidate in (
+        home / ".venv" / "Scripts" / "hermes.exe",
+        home / ".venv" / "bin" / "hermes",
+    ):
+        if candidate.is_file():
+            return str(candidate)
+    return None
 
 
 def _run(cmd: list[str], *, dry_run: bool, capture: bool = True) -> str:
@@ -51,7 +76,17 @@ def _run(cmd: list[str], *, dry_run: bool, capture: bool = True) -> str:
         print("  $ " + printable)
         return ""
     step("pipeline", printable)
-    result = subprocess.run(cmd, capture_output=capture, text=True, timeout=180)
+    # Swap the bare name for the resolved path so a checkout-local binary works.
+    if cmd and cmd[0] == "hermes":
+        resolved = hermes_cli()
+        if resolved:
+            cmd = [resolved] + cmd[1:]
+    # Never let a stray HERMES_HOME reach the CLI: it would relocate the
+    # board's database out from under `hermes kanban list`.
+    child_env = {k: v for k, v in os.environ.items() if k != "HERMES_HOME"}
+    result = subprocess.run(
+        cmd, capture_output=capture, text=True, timeout=180, env=child_env
+    )
     if result.returncode != 0:
         warn((result.stderr or result.stdout or "").strip()[:400])
     return (result.stdout or "").strip()

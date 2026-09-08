@@ -139,7 +139,7 @@ def cmd_setup_hermes(args: argparse.Namespace) -> int:
     target = Path(args.path) if args.path else ROOT / "vendor" / "hermes-agent"
     if (target / "run_agent.py").is_file():
         ok("hermes-agent already present at " + target.as_posix())
-        print("Add this to your .env:  HERMES_HOME=" + target.as_posix())
+        print("Add this to your .env:  CWT_HERMES_CHECKOUT=" + target.as_posix())
         return 0
 
     print("This will clone https://github.com/NousResearch/hermes-agent into:")
@@ -160,7 +160,7 @@ def cmd_setup_hermes(args: argparse.Namespace) -> int:
         fail("clone failed")
         return 1
     ok("cloned. Now run:  cd " + target.as_posix() + " && uv sync")
-    print("Then add to .env:  HERMES_HOME=" + target.as_posix())
+    print("Then add to .env:  CWT_HERMES_CHECKOUT=" + target.as_posix())
     return 0
 
 

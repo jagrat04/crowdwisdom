@@ -27,7 +27,7 @@ For the **in-process** runtime (`AIAgent` imported directly, which is what `cwt_
 ```bash
 python -m cwt_ads.cli setup-hermes          # clones into vendor/hermes-agent
 cd vendor/hermes-agent && uv sync
-# then add to .env:  HERMES_HOME=<that path>
+# then add to .env:  CWT_HERMES_CHECKOUT=<that path>
 ```
 
 ## Profiles

@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..logging_utils import ok, step, table, warn
-from ..render import openmontage
+from ..render import animatic_video, openmontage
 from ..schemas import RenderBrief, StoryboardBundle
 from .base import Agent, save_json
 
@@ -58,14 +58,28 @@ class VideoAgent(Agent):
         result = openmontage.render(brief, out_path, model=self.model)
         if result.get("rendered"):
             ok("rendered " + str(result.get("output")))
-        else:
-            warn("no MP4 produced: " + str(result.get("reason", "unknown")))
-            step(
-                self.id,
-                "deliverable for this run is the playable animatic: 05_storyboard.html",
+            return result
+
+        warn("OpenMontage did not produce a file: " + str(result.get("reason", "unknown")))
+
+        # Fall back to the ffmpeg animatic. It is not the generated film, and it
+        # is labelled as such - but it is the locked cut at the right runtime
+        # with the text on the right frames, it needs no keys or credits, and a
+        # director can approve pacing from it. Shipping no video at all when
+        # ffmpeg is right there would be the worse answer.
+        step(self.id, "falling back to the ffmpeg animatic render")
+        fallback = animatic_video.render(script, out_path, fps=int(cfg.get("fps", 30)))
+        if fallback.get("rendered"):
+            fallback["openmontage_reason"] = result.get("reason")
+            fallback["note"] = (
+                "Animatic render (ffmpeg), not the OpenMontage generated film. "
+                "The cut, runtime and on-screen text are final; the imagery is "
+                "the storyboard rather than generated footage."
             )
-            if not openmontage.ffmpeg_available():
-                warn("ffmpeg is not on PATH either - OpenMontage needs it for composition")
+            return fallback
+
+        warn("no MP4 produced: " + str(fallback.get("reason", "unknown")))
+        step(self.id, "deliverable for this run is the animatic: 05_storyboard.html")
         return result
 
     def _hero(self, bundle: StoryboardBundle):

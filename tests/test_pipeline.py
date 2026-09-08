@@ -528,3 +528,37 @@ def test_a_credit_refusal_is_never_retried(monkeypatch):
     with pytest.raises(llm.LLMCredit):
         llm.chat("sys", "user", retries=3)
     assert calls["n"] == 1
+
+
+def test_log_lines_do_not_eat_bracketed_run_ids(capsys):
+    """Rich reads [..] as a style tag, so a task titled '[run_x] Ads Manager'
+    printed as ' Ads Manager' - the run id vanished from every log line."""
+    from cwt_ads.logging_utils import step
+
+    step("pipeline", "hermes kanban create [run_20260908_151614] Ads Manager - mine")
+    out = capsys.readouterr().out
+    assert "run_20260908_151614" in out
+
+
+# ── the mp4 animatic ────────────────────────────────────────────────────────
+def test_animatic_video_renders_a_real_mp4(tmp_path: Path):
+    """Needs ffmpeg; skipped where it is absent."""
+    from cwt_ads.render import animatic_video, openmontage as om
+
+    if not om.ffmpeg_available():
+        pytest.skip("ffmpeg not installed")
+
+    script = AdScript(**fallback_script("data_led", 45.0, "9:16"))
+    out = tmp_path / "ad.mp4"
+    result = animatic_video.render(script, out, fps=12)  # low fps keeps the test quick
+    assert result["rendered"], result
+    assert out.exists() and out.stat().st_size > 50_000
+    assert result["shots"] == len(script.shots)
+
+
+def test_animatic_video_reports_cleanly_with_no_shots(tmp_path: Path):
+    from cwt_ads.render import animatic_video
+
+    empty = AdScript(**{**fallback_script("data_led", 45.0, "9:16"), "shots": []})
+    result = animatic_video.render(empty, tmp_path / "x.mp4")
+    assert not result["rendered"] and "reason" in result
