@@ -1,0 +1,29 @@
+# Hermes profile: cwt_market_researcher
+# Created by: hermes profile create cwt_market_researcher
+# This file is the reference copy kept in the repo. `cwt_ads.kanban`
+# creates the live profile under ~/.hermes/profiles/cwt_market_researcher/.
+
+identity:
+  name: "Market Researcher"
+  description: >-
+    Tests the hypothesised pains against the last 30 days of the open web via Tavily and Exa, and returns verbatim trader language with sources.
+
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  temperature: 0.4
+
+toolsets:
+  enabled:
+    - web
+    - files
+
+skills:
+  - crowdwisdom-research
+
+kanban:
+  # The dispatcher hands this profile only its own stage.
+  accepts_titles_matching: "Market Researcher"
+  workspace: dir
+
+# Stage entry point, for reference:
+#   python -m cwt_ads.cli stage research --run <run_id>

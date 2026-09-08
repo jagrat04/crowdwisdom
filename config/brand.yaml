@@ -1,0 +1,145 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  CrowdWisdom Trading — brand + creative bible
+#  Every agent in the team reads this file. It is the single source of
+#  truth for facts, claims, ICP and visual language, so no agent is ever
+#  free to invent a statistic.
+# ══════════════════════════════════════════════════════════════════════════
+
+product:
+  name: CrowdWisdom Trading
+  url: https://crowdwisdomtrading.com
+  category: AI trade-signal & market-consensus platform
+  one_liner: >-
+    16,564 professional traders argue all week across YouTube, Reddit and X.
+    CrowdWisdom listens to all of them and hands you the one thing they agree on —
+    with an entry, a stop and a target.
+
+  # Verified from crowdwisdomtrading.com. Agents MUST NOT invent numbers;
+  # anything not in this list has to be phrased as a qualitative statement.
+  verified_claims:
+    - id: traders_tracked
+      value: "16,564"
+      claim: "professional traders tracked across YouTube, Reddit, X and trading communities"
+    - id: hit_rate
+      value: "74.1%"
+      claim: "of tracked directions hit"
+      qualifier: "a win = reaching Target 1/2 or at least a 2% move in the forecast direction"
+    - id: combined_reach
+      value: "50 million"
+      claim: "combined followers across the tracked source accounts"
+    - id: research_compression
+      value: "100+ hours -> 5 minutes"
+      claim: "weekly research collapsed into a 5-minute briefing"
+    - id: price
+      value: "$29.99/mo"
+      claim: "Pro access; free tier includes 20 predictions"
+    - id: track_record
+      value: "1+ year"
+      claim: "of publicly auditable prediction history"
+
+  deliverables:
+    - Weekly Market Outlook
+    - Daily + weekly trade insights (equities, FX, crypto, futures)
+    - Prediction dashboard filterable by market and risk/reward
+    - Value Wisdom long-term ticker analysis
+    - Public track record
+    - Direct chat with top traders (Pro)
+
+  not_for:
+    - buy-and-hold investors
+    - anyone wanting automated execution
+
+# ── Who we are talking to ────────────────────────────────────────────────
+icp:
+  primary:
+    label: The Overwhelmed Active Trader
+    age: 28-45
+    profile: >-
+      Trades their own capital part-time around a job. Follows 40+ finance
+      accounts. Has three brokerage tabs, two Discords and a Substack open at
+      once. Is not short of opinions — is short of a decision.
+    day_in_the_life: >-
+      Wakes at 6am, scrolls 20 minutes of contradictory takes, opens a position
+      on the loudest one, closes it at lunch out of anxiety, then watches it run
+      without them.
+    pains:
+      - "Information obesity: more inputs every week, no more conviction."
+      - "Every guru is confident and half of them are wrong — with no scoreboard."
+      - "No entry/stop/target discipline, so exits are emotional."
+      - "Research time competes directly with family and job."
+      - "FOMO entries at the top; capitulation exits at the bottom."
+    desired_outcome: >-
+      To act on one clear, accountable plan per week and stop paying the
+      indecision tax.
+  secondary:
+    label: The Signal-Fatigued Subscriber
+    profile: >-
+      Already pays for 2-3 newsletters or a Discord. Cannot tell which one is
+      actually working because none of them publish a track record.
+    pains:
+      - "Paying for signals with no auditable hit rate."
+      - "Alerts arrive after the move."
+
+# ── Creative rules ───────────────────────────────────────────────────────
+creative:
+  format:
+    duration_seconds: [30, 60]
+    aspect_ratios: ["9:16", "16:9"]
+    fps: 30
+  mandate: >-
+    Cinematic, not corporate. This is a short film with a product in it — not a
+    screen recording with music. Think Blade Runner 2049 lighting on a Wall
+    Street set, cut like a Nike ad. No stock-footage handshakes. No smiling
+    person pointing at a laptop. No text-on-gradient slideshows.
+  banned:
+    - talking-head testimonial
+    - kinetic-typography-only ad
+    - screen recording as the primary visual
+    - stock businesspeople, handshakes, rising-arrow clip art
+    - lifestyle-flex tropes (lambos, watches, private jets, cash fans)
+    - >-
+      any number whose provenance is neither product.verified_claims nor the
+      CrowdWisdom prediction export in data/unique/ (cited as "data:<ticker>")
+  first_three_seconds:
+    rule: >-
+      The hook must be a visual event, not a sentence. Something must physically
+      change on screen before a single word is understood.
+  compliance:
+    - "Never promise profit or guaranteed returns."
+    - "Always attach the qualifier to the 74.1% claim when it appears as text."
+    - "Include a 'not financial advice / capital at risk' end card."
+
+# ── Visual system (fed verbatim into shot prompts) ───────────────────────
+look:
+  palette:
+    ink: "#05070D"        # near-black blue, the void the noise lives in
+    signal: "#00E5A0"     # the single green of clarity — used once, deliberately
+    noise: "#FF3B5C"      # contradiction red, only ever in the chaos beats
+    paper: "#EAF0FF"      # cold institutional white for type
+    brass: "#C8A96A"      # restraint accent for the track-record beat
+  grade: >-
+    Teal-and-amber, deep crushed blacks, practical light sources only, heavy
+    volumetric haze, 2.39:1 anamorphic flares on the hero beat.
+  lens: "35mm anamorphic, shallow depth of field, slow deliberate push-ins"
+  motion: "Locked-off or slow dolly. Chaos beats use hard 2-4 frame cuts; clarity beats hold."
+  texture: "35mm grain, subtle chromatic aberration at frame edges, no digital sharpening"
+  typography:
+    display: "Grotesque, tight tracking, all-caps, hairline weight"
+    data: "Monospace, tabular figures — numbers must read as measured, not marketed"
+  sound:
+    chaos: "Layered overlapping voices, market bell, notification stack, rising tinnitus tone"
+    pivot: "Total silence — one full beat. The most expensive sound in the ad."
+    clarity: "Single sub-bass hit, then a clean pulse at 90bpm"
+  end_card: "Wordmark on ink. Signal-green underline draws in over 12 frames. URL in mono."
+
+voice:
+  tone: "Calm, exact, slightly cold. The confidence of someone who has the receipts."
+  person: second
+  sentence_length: short
+  forbidden_words:
+    - "unlock"
+    - "revolutionary"
+    - "game-changer"
+    - "supercharge"
+    - "in today's fast-paced world"
+    - "guaranteed"

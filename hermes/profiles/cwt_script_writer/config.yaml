@@ -1,0 +1,28 @@
+# Hermes profile: cwt_script_writer
+# Created by: hermes profile create cwt_script_writer
+# This file is the reference copy kept in the repo. `cwt_ads.kanban`
+# creates the live profile under ~/.hermes/profiles/cwt_script_writer/.
+
+identity:
+  name: "Creative Director"
+  description: >-
+    Writes three cinematic 30-60s scripts with engineered visual hooks and shot-by-shot storyboards a video model can execute.
+
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  temperature: 0.9
+
+toolsets:
+  enabled:
+    - files
+
+skills:
+  - crowdwisdom-script
+
+kanban:
+  # The dispatcher hands this profile only its own stage.
+  accepts_titles_matching: "Creative Director"
+  workspace: dir
+
+# Stage entry point, for reference:
+#   python -m cwt_ads.cli stage script --run <run_id>

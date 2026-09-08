@@ -1,0 +1,29 @@
+# Hermes profile: cwt_ads_manager
+# Created by: hermes profile create cwt_ads_manager
+# This file is the reference copy kept in the repo. `cwt_ads.kanban`
+# creates the live profile under ~/.hermes/profiles/cwt_ads_manager/.
+
+identity:
+  name: "Ads Manager"
+  description: >-
+    Mines the Meta Ad Library via Apify for trading-niche video ads live in the last 30 days and ranks them by longevity, scale and ICP relevance.
+
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  temperature: 0.3
+
+toolsets:
+  enabled:
+    - web
+    - files
+
+skills:
+  - crowdwisdom-mine
+
+kanban:
+  # The dispatcher hands this profile only its own stage.
+  accepts_titles_matching: "Ads Manager"
+  workspace: dir
+
+# Stage entry point, for reference:
+#   python -m cwt_ads.cli stage mine --run <run_id>

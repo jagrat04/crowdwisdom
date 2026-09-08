@@ -1,0 +1,137 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  Agent team + task graph.
+#  Consumed by src/cwt_ads/pipeline.py (local run) and by
+#  hermes/kanban/bootstrap.py (distributed run on the Hermes Kanban board).
+# ══════════════════════════════════════════════════════════════════════════
+
+defaults:
+  model: anthropic/claude-sonnet-4.6
+  temperature: 0.7
+  max_tokens: 8000
+  hermes:
+    quiet_mode: true
+    skip_memory: true
+    disabled_toolsets: [terminal, browser]
+
+mining:
+  # Two-phase, and the reason is in the data. Meta's KEYWORD search returns
+  # today's delivery record: every row comes back with start == end == today
+  # and collationCount 1, so longevity - the whole basis for judging what is
+  # working - is missing. Meta's PAGE view returns real per-ad start dates
+  # spanning months. So: discover advertisers by keyword, then measure them by
+  # page. See src/cwt_ads/tools/apify_client.py for the payload evidence.
+  mode: pages                # pages | keywords
+
+  # Phase 1 - who is advertising in this niche?
+  discovery_queries:
+    - "trading signals"
+    - "stock alerts"
+    - "options trading"
+    - "investing app"
+    - "trade ideas"
+    - "market research newsletter"
+  discover_limit: 25         # ads per discovery query (only page ids are kept)
+  max_pages: 8               # advertiser pages to measure in phase 2
+
+  # Known category advertisers, measured before any discovered page. These are
+  # the incumbents worth studying whether or not a keyword search surfaces them.
+  seed_pages:
+    - "https://www.facebook.com/themotleyfool"
+    - "https://www.facebook.com/investors.com"
+    - "https://www.facebook.com/Benzinga"
+    - "https://www.facebook.com/seekingalpha"
+    - "https://www.facebook.com/tradingview"
+
+  countries: ["US"]
+  media_type: video          # we are studying video ads, so ignore static
+  active_status: active
+  window_days: 30            # assignment: best working ads in the last 30 days
+  results_per_page: 20       # ads per advertiser page
+  results_per_query: 40      # only used in keywords mode
+  keep_top: 12               # winners handed to the Insight Agent
+
+research:
+  window_days: 30            # assignment: limit search to the last month
+  providers: [tavily, exa]   # both are attempted; whichever has a key runs
+  max_results_per_query: 8
+
+scripts:
+  # Three scripts, one per mandated angle.
+  angles:
+    - id: pain_led
+      name: "Pain / ICP led"
+      source: research
+      brief: >-
+        Open inside the ICP's actual failure moment, evidenced by last-month
+        research. The product does not appear until the turn.
+    - id: data_led
+      name: "Unique data led"
+      source: unique_data
+      brief: >-
+        The hero is a proprietary CrowdWisdom number. Treat the data like
+        forensic evidence — the visual is the dataset itself, made physical.
+    - id: outcome_led
+      name: "How CrowdWisdom changes the result"
+      source: product
+      brief: >-
+        Same trader, same week, two timelines. The only variable is whether
+        they had the consensus. Show the delta, do not describe it.
+
+video:
+  duration_seconds: 45
+  aspect_ratio: "9:16"
+  fps: 30
+  engine: openmontage        # openmontage | previz
+  # Which of the three scripts gets rendered to MP4 by default.
+  hero_script: data_led
+
+agents:
+  - id: ads_manager
+    role: "Ads Manager"
+    profile: cwt_ads_manager
+    charter: >-
+      Mine the Meta Ad Library for video ads in the trading/investing niche
+      that have been live in the last 30 days, score them for staying power,
+      and publish the winners.
+    tools: [apify]
+    outputs: [01_winning_ads.json]
+
+  - id: insight_agent
+    role: "Creative Strategist"
+    profile: cwt_insight_miner
+    charter: >-
+      Reverse-engineer the winning ads into the marketing mechanics beneath
+      them: the pain being pressed, the promise, the hook device, the proof
+      structure, and the ICP each ad is actually shouting at.
+    depends_on: [ads_manager]
+    outputs: [02_ad_insights.json]
+
+  - id: research_agent
+    role: "Market Researcher"
+    profile: cwt_insight_miner
+    charter: >-
+      Take the top pains and ICP definition and verify them against the last
+      30 days of the open web via Tavily and Exa. Return quotes and sources,
+      never vibes.
+    depends_on: [insight_agent]
+    tools: [tavily, exa]
+    outputs: [03_research.json]
+
+  - id: script_agent
+    role: "Creative Director"
+    profile: cwt_script_writer
+    charter: >-
+      Write three cinematic 30-60s ad scripts (one per angle), each with a
+      visual hook engineered to stop the scroll in under 3 seconds, and a
+      shot-by-shot storyboard with prompts a video model can execute.
+    depends_on: [research_agent]
+    outputs: [04_storyboards.json, 05_storyboard.html]
+
+  - id: video_agent
+    role: "Video Director"
+    profile: cwt_video_director
+    charter: >-
+      Compile the hero storyboard into an OpenMontage production brief and
+      drive the render to a finished MP4.
+    depends_on: [script_agent]
+    outputs: [06_openmontage_brief.json, ad.mp4]

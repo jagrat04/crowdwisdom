@@ -1,0 +1,73 @@
+# ══════════════════════════════════════════════════════════════════════════
+#  The CrowdWisdom board, declaratively.
+#
+#  This is documentation of the graph that hermes/kanban/bootstrap.py creates
+#  on the live board (~/.hermes/kanban.db). The authoritative definition of the
+#  agents and their dependencies is config/pipeline.yaml; this file records how
+#  that graph maps onto Hermes Kanban concepts.
+# ══════════════════════════════════════════════════════════════════════════
+
+board:
+  name: crowdwisdom-video-ads
+  workspace: dir           # every task shares the repo working directory, so
+                           # each agent can read the run folder the previous
+                           # agent wrote into
+  dispatch:
+    max_in_progress: 2
+    max_in_progress_per_profile: 1
+    failure_limit: 2
+    auto_decompose: false  # the graph is authored, not triaged
+
+tasks:
+  - id: mine
+    title: "Ads Manager - mine"
+    assignee: cwt_ads_manager
+    skill: crowdwisdom-ad-mining
+    command: python -m cwt_ads.cli stage mine --run <run_id>
+    parents: []
+    produces: [01_winning_ads.json]
+    blocks_if: APIFY_TOKEN missing and --offline not passed
+
+  - id: insight
+    title: "Creative Strategist - insight"
+    assignee: cwt_insight_miner
+    skill: crowdwisdom-insight-extraction
+    command: python -m cwt_ads.cli stage insight --run <run_id>
+    parents: [mine]
+    produces: [02_ad_insights.json]
+    blocks_if: 01_winning_ads.json missing
+
+  - id: research
+    title: "Market Researcher - research"
+    assignee: cwt_market_researcher
+    skill: crowdwisdom-icp-research
+    command: python -m cwt_ads.cli stage research --run <run_id>
+    parents: [insight]
+    produces: [03_research.json]
+    blocks_if: 02_ad_insights.json missing
+
+  - id: script
+    title: "Creative Director - script"
+    assignee: cwt_script_writer
+    skill: crowdwisdom-script-forge
+    command: python -m cwt_ads.cli stage script --run <run_id>
+    parents: [research]
+    produces: [04_storyboards.json, 05_storyboard.html]
+    blocks_if: 02_ad_insights.json or 03_research.json missing
+
+  - id: video
+    title: "Video Director - video"
+    assignee: cwt_video_director
+    skill: crowdwisdom-video-render
+    command: python -m cwt_ads.cli stage video --run <run_id>
+    parents: [script]
+    produces: [06_openmontage_brief.json, ad.mp4]
+    blocks_if: 04_storyboards.json missing, or ffmpeg not on PATH
+
+# Every worker ends by calling a terminal tool - kanban_complete() with the
+# artifact paths in metadata, or kanban_block() with the reason. Exiting
+# without one is a protocol violation and the dispatcher will reclaim the task.
+completion_contract:
+  on_success: kanban_complete(result=<summary>, metadata={"files": [...]})
+  on_missing_input: kanban_block(reason=<which artifact is missing>)
+  on_long_running: kanban_heartbeat()

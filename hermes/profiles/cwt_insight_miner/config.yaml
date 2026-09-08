@@ -1,0 +1,28 @@
+# Hermes profile: cwt_insight_miner
+# Created by: hermes profile create cwt_insight_miner
+# This file is the reference copy kept in the repo. `cwt_ads.kanban`
+# creates the live profile under ~/.hermes/profiles/cwt_insight_miner/.
+
+identity:
+  name: "Creative Strategist"
+  description: >-
+    Reverse-engineers winning ads into pain, promise, hook device and proof structure, and names the category conventions worth breaking.
+
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  temperature: 0.6
+
+toolsets:
+  enabled:
+    - files
+
+skills:
+  - crowdwisdom-insight
+
+kanban:
+  # The dispatcher hands this profile only its own stage.
+  accepts_titles_matching: "Creative Strategist"
+  workspace: dir
+
+# Stage entry point, for reference:
+#   python -m cwt_ads.cli stage insight --run <run_id>

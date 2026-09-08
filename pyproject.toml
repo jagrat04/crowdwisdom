@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cwt-ads"
+version = "1.0.0"
+description = "CrowdWisdom Trading - cinematic video ads agent team, built on the Hermes agent framework"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.32.0",
+    "pydantic>=2.7.0",
+    "python-dotenv>=1.0.1",
+    "PyYAML>=6.0.1",
+    "rich>=13.7.0",
+]
+
+[project.optional-dependencies]
+sdk = ["apify-client>=1.7.1", "tavily-python>=0.5.0", "exa-py>=1.0.9"]
+dev = ["pytest>=8.0.0"]
+
+[project.scripts]
+cwt-ads = "cwt_ads.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

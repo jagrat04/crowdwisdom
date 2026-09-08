@@ -1,0 +1,30 @@
+# Hermes profile: cwt_video_director
+# Created by: hermes profile create cwt_video_director
+# This file is the reference copy kept in the repo. `cwt_ads.kanban`
+# creates the live profile under ~/.hermes/profiles/cwt_video_director/.
+
+identity:
+  name: "Video Director"
+  description: >-
+    Compiles the hero storyboard into an OpenMontage production package and drives the cinematic pipeline to a finished MP4.
+
+model:
+  default: "anthropic/claude-sonnet-4.6"
+  temperature: 0.3
+
+toolsets:
+  enabled:
+    - terminal
+    - files
+    - web
+
+skills:
+  - crowdwisdom-video
+
+kanban:
+  # The dispatcher hands this profile only its own stage.
+  accepts_titles_matching: "Video Director"
+  workspace: dir
+
+# Stage entry point, for reference:
+#   python -m cwt_ads.cli stage video --run <run_id>

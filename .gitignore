@@ -1,0 +1,16 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+output/**
+!output/.gitkeep
+data/runs/
+vendor/
+*.mp4
+*.mov
+*.wav
+*.mp3
+.DS_Store
