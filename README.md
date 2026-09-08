@@ -71,7 +71,8 @@ output/run_YYYYMMDD_HHMMSS/
 ├── 04_storyboards.json          three films, shot by shot
 ├── 05_storyboard.html           ← open this. It plays.
 ├── 06_openmontage_brief.json    the production brief handed to OpenMontage
-└── ad.mp4                       the render (when OpenMontage is configured)
+└── ad.mp4                       the 45s cut - OpenMontage when configured,
+                                 otherwise an ffmpeg animatic render
 ```
 
 `05_storyboard.html` is a self-contained animatic: shots advance on their real timecodes, on-screen text lands where the script says it lands, the palette is the brand palette, and each beat has its own art-directed ground. No build step, no CDN, no keys. It is the fastest honest way to answer *does the first three seconds work?* before spending a cent on generation.
@@ -226,12 +227,16 @@ Drop more exports into that folder and they are picked up automatically; the Cre
 
 ## Rendering
 
-OpenMontage is instruction-driven: its Rule Zero is that production goes through a pipeline, never through ad-hoc scripts calling its tools. So this project does not try to be a second orchestrator. The Video Director:
+Two paths, and the agent tries them in that order.
+
+**OpenMontage** is instruction-driven: its Rule Zero is that production goes through a pipeline, never through ad-hoc scripts calling its tools. So this project does not try to be a second orchestrator. The Video Director:
 
 1. compiles the storyboard into a production package (`BRIEF.md` + `shotlist.json`) inside the OpenMontage checkout, with every shot's image prompt already carrying the grade;
 2. hands it to a Hermes agent with terminal access working inside that checkout — which is exactly the AI assistant `AGENT_GUIDE.md` expects to be driving it — pointed at the `cinematic` pipeline in atelier mode.
 
 The cut is locked before the render starts. Shot boundaries *are* the edit.
+
+**The ffmpeg animatic** is the fallback, and it always works: no keys, no credits, no model. It renders the locked cut at 1080x1920 with the on-screen text landing on the right frames, a slow push on every shot, per-beat art direction and film grain, then muxes a silent stereo track so the file behaves like a real ad everywhere. It is *not* generated footage and the artifact says so — but a director can approve pacing from it, and shipping no video at all when ffmpeg is sitting right there would be the worse answer. The grain is seeded, so two runs of the same storyboard produce byte-identical files.
 
 ---
 
@@ -252,8 +257,8 @@ src/cwt_ads/
   schemas.py                 typed contracts for every artifact
   agents/                    the five agents + the reference films
   tools/                     apify, tavily/exa, proprietary data
-  render/                    OpenMontage brief + the animatic
-tests/                       26 tests over the parts that can be wrong silently
+  render/                    OpenMontage brief, the HTML animatic, the MP4 render
+tests/                       52 tests over the parts that can be wrong silently
 ```
 
 ---
